@@ -9,6 +9,7 @@ import java.util.List;
 public class CustomUserDetails implements UserDetails {
 
     private final List<? extends GrantedAuthority> grantedAuthorities;
+    private final String role;
     private final String username;
     private final String password;
     private final boolean accountNonExpired;
@@ -17,6 +18,7 @@ public class CustomUserDetails implements UserDetails {
     private final boolean enabled;
 
     public CustomUserDetails(List<? extends GrantedAuthority> grantedAuthorities,
+                             String role,
                              String username,
                              String password,
                              boolean accountNonExpired,
@@ -25,6 +27,7 @@ public class CustomUserDetails implements UserDetails {
                              boolean enabled) {
 
         this.grantedAuthorities = grantedAuthorities;
+        this.role = role;
         this.username = username;
         this.password = password;
         this.accountNonExpired = accountNonExpired;
@@ -66,5 +69,9 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public String getRole() {
+        return role;
     }
 }

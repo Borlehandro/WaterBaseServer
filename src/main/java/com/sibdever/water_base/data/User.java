@@ -1,5 +1,7 @@
 package com.sibdever.water_base.data;
 
+import net.bytebuddy.implementation.bind.annotation.Default;
+
 import javax.persistence.*;
 import java.util.List;
 
@@ -11,19 +13,28 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @Column(unique = true, nullable = false)
-    private String username;
+    private final String username;
     @Column(nullable = false)
-    private String password;
-    private boolean enabled;
-    private boolean accountNonExpired;
-    private boolean credentialsNonExpired;
-    private boolean accountNonLocked;
+    private final String password;
+
+    private boolean enabled = true;
+    private boolean accountNonExpired = true;
+    private boolean credentialsNonExpired = true;
+    private boolean accountNonLocked = true;
+
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
 
     @ElementCollection(targetClass = UserAuthority.class)
     @JoinTable(name = "users_authorities", joinColumns = @JoinColumn(name = "id"))
     @Column(name = "authority", nullable = false)
     @Enumerated(EnumType.STRING)
     private List<UserAuthority> userAuthorities;
+
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
 
     public int getId() {
         return id;
@@ -55,5 +66,9 @@ public class User {
 
     public List<UserAuthority> getUserAuthorities() {
         return userAuthorities;
+    }
+
+    public UserRole getRole() {
+        return role;
     }
 }
