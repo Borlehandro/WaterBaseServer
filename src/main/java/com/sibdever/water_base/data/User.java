@@ -9,13 +9,15 @@ import java.util.List;
 @Table(name = "users")
 public class User {
 
+    public User(){}
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @Column(unique = true, nullable = false)
-    private final String username;
+    private String username;
     @Column(nullable = false)
-    private final String password;
+    private String password;
 
     private boolean enabled = true;
     private boolean accountNonExpired = true;
@@ -25,7 +27,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    @ElementCollection(targetClass = UserAuthority.class)
+    @ElementCollection(targetClass = UserAuthority.class, fetch = FetchType.EAGER)
     @JoinTable(name = "users_authorities", joinColumns = @JoinColumn(name = "id"))
     @Column(name = "authority", nullable = false)
     @Enumerated(EnumType.STRING)

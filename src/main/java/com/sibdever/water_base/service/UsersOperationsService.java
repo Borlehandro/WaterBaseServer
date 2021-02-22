@@ -2,21 +2,22 @@ package com.sibdever.water_base.service;
 
 import com.sibdever.water_base.data.User;
 import com.sibdever.water_base.data.UsersRepository;
-import com.sibdever.water_base.security.PasswordConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UsersOperationsService {
     private final UsersRepository usersRepository;
-    private final PasswordConfig passwordConfig;
+    private final PasswordEncoder encoder;
 
-    public UsersOperationsService(UsersRepository usersRepository, PasswordConfig passwordConfig) {
+    @Autowired
+    public UsersOperationsService(UsersRepository usersRepository, PasswordEncoder encoder) {
         this.usersRepository = usersRepository;
-        this.passwordConfig = passwordConfig;
+        this.encoder = encoder;
     }
 
     public void createUser(String username, String password) {
-        usersRepository.save(new User(username, passwordConfig.passwordEncoder().encode(password)));
+        usersRepository.save(new User(username, encoder.encode(password)));
     }
 }

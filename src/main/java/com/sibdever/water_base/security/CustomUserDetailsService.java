@@ -26,7 +26,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = repository.findUserByUsername(username);
         return new CustomUserDetails(
                 user.getUserAuthorities().stream().map(UserAuthority::toGrantedAuthority).collect(Collectors.toList()),
-                user.getRole().name(),
+                user.getRole() != null ? user.getRole().name() : null,
                 user.getUsername(),
                 user.getPassword(),
                 user.isAccountNonExpired(),
