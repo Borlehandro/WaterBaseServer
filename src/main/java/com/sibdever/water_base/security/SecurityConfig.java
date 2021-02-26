@@ -1,6 +1,5 @@
 package com.sibdever.water_base.security;
 
-import com.sibdever.water_base.jwt.JwtConfig;
 import com.sibdever.water_base.jwt.JwtCredentialsFilter;
 import com.sibdever.water_base.jwt.JwtTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +14,9 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import javax.crypto.SecretKey;
+import java.sql.Date;
+
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -22,12 +24,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final PasswordEncoder encoder;
     private final CustomUserDetailsService userDetailsService;
-    private final JwtConfig jwtConfig = new JwtConfig();
+    private final SecretKey secretKey;
+    private final Long tokenDuration;
 
     @Autowired
-    public SecurityConfig(PasswordEncoder encoder, CustomUserDetailsService userDetailsService) {
+    public SecurityConfig(PasswordEncoder encoder, CustomUserDetailsService userDetailsService, SecretKey secretKey, Long tokenDuration) {
         this.encoder = encoder;
         this.userDetailsService = userDetailsService;
+        this.secretKey = secretKey;
+        this.tokenDuration = tokenDuration;
     }
 
     @Override
@@ -37,9 +42,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .addFilter(new JwtCredentialsFilter(authenticationManager(), jwtConfig))
-                .addFilterAfter(new JwtTokenFilter(jwtConfig), JwtCredentialsFilter.class)
+                .addFilter(new JwtCredentialsFilter(authenticationManager(), secretKey, tokenDuration))
+                .addFilterAfter(new JwtTokenFilter(secretKey), JwtCredentialsFilter.class)
                 .authorizeRequests()
+                .antMatchers("/register").permitAll()
                 .anyRequest()
                 .authenticated();
     }

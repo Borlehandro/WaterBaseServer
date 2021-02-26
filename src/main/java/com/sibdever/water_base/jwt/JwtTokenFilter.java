@@ -9,6 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import javax.crypto.SecretKey;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -20,10 +21,10 @@ import java.util.stream.Collectors;
 
 public class JwtTokenFilter extends OncePerRequestFilter {
 
-    private final JwtConfig config;
+    private final SecretKey secretKey;
 
-    public JwtTokenFilter(JwtConfig config) {
-        this.config = config;
+    public JwtTokenFilter(SecretKey secretKey) {
+        this.secretKey= secretKey;
     }
 
     @Override
@@ -31,8 +32,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        System.out.println("Try to login with token");
         String authorizationHeader = request.getHeader("Authorization");
         if(authorizationHeader == null || authorizationHeader.isBlank() || !authorizationHeader.startsWith("Bearer ")) {
+            System.out.println("Filter redirect");
             filterChain.doFilter(request, response);
             return;
         }
@@ -40,7 +43,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         try {
             String token = authorizationHeader.replace( "Bearer ", "");
             Jws<Claims> claims = Jwts.parserBuilder()
-                    .setSigningKey(config.getSecretKey())
+                    .setSigningKey(secretKey)
                     .build()
                     .parseClaimsJws(token);
 
@@ -63,5 +66,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         } catch (JwtException e) {
             throw new IllegalStateException(e);
         }
+
+        filterChain.doFilter(request, response);
+
     }
 }

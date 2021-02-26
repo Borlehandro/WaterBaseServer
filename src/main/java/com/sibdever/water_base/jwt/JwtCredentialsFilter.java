@@ -9,21 +9,27 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import javax.crypto.SecretKey;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 
 public class JwtCredentialsFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
-    private final JwtConfig config;
+    private final SecretKey secretKey;
+    private final Long tokenDuration;
 
-    public JwtCredentialsFilter(AuthenticationManager authenticationManager, JwtConfig config) {
+    public JwtCredentialsFilter(AuthenticationManager authenticationManager, SecretKey secretKey, Long tokenDuration) {
         this.authenticationManager = authenticationManager;
-        this.config = config;
+        this.secretKey = secretKey;
+        this.tokenDuration = tokenDuration;
     }
 
     // You can use simple request arguments here
@@ -31,6 +37,7 @@ public class JwtCredentialsFilter extends UsernamePasswordAuthenticationFilter {
     public Authentication attemptAuthentication(HttpServletRequest request,
                                                 HttpServletResponse response) throws AuthenticationException {
         try(var input = request.getInputStream()) {
+            System.out.println("Try to login with credentials");
             CredentialsAuthenticationRequest credentialsAuthenticationRequest = new ObjectMapper().readValue(input, CredentialsAuthenticationRequest.class);
             return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(credentialsAuthenticationRequest.getUsername(), credentialsAuthenticationRequest.getPassword()));
         } catch (IOException e) {
@@ -45,8 +52,8 @@ public class JwtCredentialsFilter extends UsernamePasswordAuthenticationFilter {
         String token = Jwts.builder()
                 .setSubject(authResult.getName())
                 .claim("authorities", authResult.getAuthorities())
-                .setExpiration(java.sql.Date.valueOf(LocalDate.now().plusWeeks(2)))
-                .signWith(config.getSecretKey())
+                .setExpiration(java.sql.Date.valueOf(LocalDate.now().plus(tokenDuration, ChronoUnit.DAYS)))
+                .signWith(secretKey)
                 .compact();
 
         response.addHeader("Authorization", "Bearer " + token);
